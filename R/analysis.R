@@ -39,4 +39,4 @@ xrf2
 
 #Work on this...
 xcp<-condprob(dat_filt_grp_cc$Secchi.Depth,log1p(dat_filt_grp_cc$Chlorophyll.a),
-              log1p(23),"gt","gte",ci=T,R=100)
+              log1p(23),"lt","gte",ci=T,R=10)
