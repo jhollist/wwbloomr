@@ -23,6 +23,7 @@ dat_filt_grp <- dat_filt %>%
             lat = unique(Latitude)
           ) %>%
   spread(ParShortName,average_conc)
+write.csv(dat_filt_grp,"jeffs_data.csv")
 
 cc <- complete.cases(dat_filt_grp[,9:11])
 dat_filt_grp_cc <- dat_filt_grp[cc,] %>% 
