@@ -61,32 +61,32 @@ dat_filt_grp_cc$chla_class <- as.numeric(dat_filt_grp_cc$Chlorophyll.a >= 23)
 
 
 
-xlm <- lm(log1p(dat_filt_grp_cc$Chlorophyll.a) ~ log1p(dat_filt_grp_cc$Secchi.Depth) + 
-            log1p(dat_filt_grp_cc$Temperature) + dat_filt_grp_cc$nao) 
-xrf <- randomForest(log1p(dat_filt_grp_cc$Chlorophyll.a) ~ log1p(dat_filt_grp_cc$Secchi.Depth) + 
-                      log1p(dat_filt_grp_cc$Temperature) + dat_filt_grp_cc$nao)
-xrf2 <- dat_filt_grp_cc %>%
-  filter(month == 8 | month == 9) %>%
-  randomForest(factor(chla_class) ~ Secchi.Depth + Temperature + 
-                       LakeAcreage + max_depth, data=., 
-                     importance = T)
+#xlm <- lm(log1p(dat_filt_grp_cc$Chlorophyll.a) ~ log1p(dat_filt_grp_cc$Secchi.Depth) + 
+#            log1p(dat_filt_grp_cc$Temperature) + dat_filt_grp_cc$nao) 
+#xrf <- randomForest(log1p(dat_filt_grp_cc$Chlorophyll.a) ~ log1p(dat_filt_grp_cc$Secchi.Depth) + 
+#                      log1p(dat_filt_grp_cc$Temperature) + dat_filt_grp_cc$nao)
+#xrf2 <- dat_filt_grp_cc %>%
+#  filter(month == 8 | month == 9) %>%
+#  randomForest(factor(chla_class) ~ Secchi.Depth + Temperature + 
+#                       LakeAcreage + max_depth, data=., 
+#                    importance = T)
 #logistic
-logistic <- glm(factor(chla_class) ~ Secchi.Depth + Temperature, data=dat_filt_grp_cc, family = "binomial")
-pred <- predict(logistic, type="response")>0.5 # predicted values
-obs <- dat_filt_grp_cc$chla_class == 1
-table(pred,obs)
+#logistic <- glm(factor(chla_class) ~ Secchi.Depth + Temperature, data=dat_filt_grp_cc, family = "binomial")
+#pred <- predict(logistic, type="response")>0.5 # predicted values
+#obs <- dat_filt_grp_cc$chla_class == 1
+#table(pred,obs)
 
 #negative binomial
-install.packages("MASS")
-library(MASS)
-neg_binom <- glm.nb(factor(chla_class) ~ Secchi.Depth + Temperature, data=dat_filt_grp_cc)
-pred <- predict(neg_binom, type="response")>0.5 # predicted values
-obs <- dat_filt_grp_cc$chla_class == 1
-table(pred,obs)
+##install.packages("MASS")
+#library(MASS)
+#neg_binom <- glm.nb(factor(chla_class) ~ Secchi.Depth + Temperature, data=dat_filt_grp_cc)
+#pred <- predict(neg_binom, type="response")>0.5 # predicted values
+#obs <- dat_filt_grp_cc$chla_class == 1
+#table(pred,obs)
 
 #Facet
 gg <- dat_filt_grp_cc %>%
-  filter(month == 8 | month == 9) %>%
+  filter(month == 8 | month == 9 | month == 7) %>%
   ggplot(aes(x=Secchi.Depth,y=Temperature)) +
   geom_point(aes(alpha=LakeAcreage))
 gg
@@ -96,12 +96,21 @@ bloom_month <- dat_filt_grp_cc %>%
   summarize(perc_bloom = sum(chla_class)/n())
 plot(bloom_month$month,bloom_month$perc_bloom)
 
-bloom_yr <- dat_filt_grp_cc %>%
-  filter(month == 8 | month == 9) %>%
-  group_by(year) %>%
+# Get years with at least xx obs
+count_lake_yr <- dat_filt_grp_cc %>%
+  filter(month == 7 | month == 8 | month == 9) %>%
+  group_by(ww_id,year)%>%
+  tally() %>%
+  filter(n >= 5) %>%
+  select(ww_id)
+
+bloom_yr_id <- dat_filt_grp_cc %>%
+  filter(month == 7 | month == 8 | month == 9) %>%
+  group_by(year,ww_id) %>%
   summarize(perc_bloom = sum(chla_class)/n())
-plot(bloom_yr$year,bloom_yr$perc_bloom)
-
-
+#plot(bloom_yr$year,bloom_yr$perc_bloom)
+gg_bloom <- ggplot(bloom_yr_id,aes(x=year,y=perc_bloom,group=ww_id)) +
+                     geom_line()+facet_wrap(~ww_id)
+gg_bloom
 
 
